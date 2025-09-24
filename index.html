@@ -49,54 +49,50 @@
         </div>
     </div>
 
-    <script>
-        let ws = null;
+<script>
+    let ws = null;
+    
+    function connect() {
+        // Use ngrok HTTPS URL (you'll get this from ngrok command line)
+        const wssUrl = 'wss://your-ngrok-subdomain.ngrok.io';
         
-        function connect() {
-            // Replace with your ESP32's public IP or domain
-            const esp32IP = '10.215.154.170';
-            const port = 80; // Change if using different port
-            
-            ws = new WebSocket(`ws://${esp32IP}:${port}/ws`);
-            
-            ws.onopen = function() {
-                document.getElementById('status').className = 'connected';
-                document.getElementById('status').textContent = 'Connected';
-            };
-            
-            ws.onclose = function() {
-                document.getElementById('status').className = 'disconnected';
-                document.getElementById('status').textContent = 'Disconnected';
-                // Try to reconnect after 3 seconds
-                setTimeout(connect, 3000);
-            };
-            
-            ws.onmessage = function(event) {
-                console.log('Message from ESP32:', event.data);
-            };
+        ws = new WebSocket(wssUrl);
+        
+        ws.onopen = function() {
+            document.getElementById('status').className = 'connected';
+            document.getElementById('status').textContent = 'Connected';
+        };
+        
+        ws.onclose = function() {
+            document.getElementById('status').className = 'disconnected';
+            document.getElementById('status').textContent = 'Disconnected';
+            setTimeout(connect, 3000);
+        };
+        
+        ws.onmessage = function(event) {
+            console.log('Message:', event.data);
+        };
+    }
+    
+    function sendCommand(command) {
+        if (ws && ws.readyState === WebSocket.OPEN) {
+            ws.send(command);
+        } else {
+            alert('Not connected to ESP32');
         }
-        
-        function sendCommand(command) {
-            if (ws && ws.readyState === WebSocket.OPEN) {
-                ws.send(command);
-            } else {
-                alert('Not connected to ESP32');
-            }
-        }
-        
-        function sendColor(color) {
-            // Convert hex color to RGB
-            const hex = color.replace('#', '');
-            const r = parseInt(hex.substr(0, 2), 16);
-            const g = parseInt(hex.substr(2, 2), 16);
-            const b = parseInt(hex.substr(4, 2), 16);
-            
-            sendCommand(`COLOR:${r},${g},${b}`);
-        }
-        
-        // Auto-connect when page loads
-        window.onload = connect;
-    </script>
+    }
+    
+    function sendColor(color) {
+        const hex = color.replace('#', '');
+        const r = parseInt(hex.substr(0, 2), 16);
+        const g = parseInt(hex.substr(2, 2), 16);
+        const b = parseInt(hex.substr(4, 2), 16);
+        sendCommand(`COLOR:${r},${g},${b}`);
+    }
+    
+    window.onload = connect;
+</script>
 </body>
 
 </html>
+
