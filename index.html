@@ -54,7 +54,7 @@
         
         function connect() {
             // Replace with your ESP32's public IP or domain
-            const esp32IP = 'YOUR_ESP32_IP_OR_DOMAIN';
+            const esp32IP = '10.215.154.170';
             const port = 80; // Change if using different port
             
             ws = new WebSocket(`ws://${esp32IP}:${port}/ws`);
@@ -98,4 +98,5 @@
         window.onload = connect;
     </script>
 </body>
+
 </html>
