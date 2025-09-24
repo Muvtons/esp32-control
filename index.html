@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ESP32-S3 LED Control</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background: #f0f0f0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        button {
+            padding: 15px 30px;
+            margin: 10px;
+            font-size: 18px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        #onBtn { background: #4CAF50; color: white; }
+        #offBtn { background: #f44336; color: white; }
+        #status { margin: 20px 0; padding: 10px; }
+        .connected { background: #4CAF50; color: white; }
+        .disconnected { background: #ff9800; color: white; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>ESP32-S3 LED Control</h1>
+        
+        <div id="status" class="disconnected">Disconnected</div>
+        
+        <button id="onBtn" onclick="sendCommand('ON')">LED ON</button>
+        <button id="offBtn" onclick="sendCommand('OFF')">LED OFF</button>
+        
+        <div style="margin-top: 20px;">
+            <input type="color" id="colorPicker" onchange="sendColor(this.value)">
+            <button onclick="sendColor(document.getElementById('colorPicker').value)">Set Color</button>
+        </div>
+    </div>
+
+    <script>
+        let ws = null;
+        
+        function connect() {
+            // Replace with your ESP32's public IP or domain
+            const esp32IP = 'YOUR_ESP32_IP_OR_DOMAIN';
+            const port = 80; // Change if using different port
+            
+            ws = new WebSocket(`ws://${esp32IP}:${port}/ws`);
+            
+            ws.onopen = function() {
+                document.getElementById('status').className = 'connected';
+                document.getElementById('status').textContent = 'Connected';
+            };
+            
+            ws.onclose = function() {
+                document.getElementById('status').className = 'disconnected';
+                document.getElementById('status').textContent = 'Disconnected';
+                // Try to reconnect after 3 seconds
+                setTimeout(connect, 3000);
+            };
+            
+            ws.onmessage = function(event) {
+                console.log('Message from ESP32:', event.data);
+            };
+        }
+        
+        function sendCommand(command) {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(command);
+            } else {
+                alert('Not connected to ESP32');
+            }
+        }
+        
+        function sendColor(color) {
+            // Convert hex color to RGB
+            const hex = color.replace('#', '');
+            const r = parseInt(hex.substr(0, 2), 16);
+            const g = parseInt(hex.substr(2, 2), 16);
+            const b = parseInt(hex.substr(4, 2), 16);
+            
+            sendCommand(`COLOR:${r},${g},${b}`);
+        }
+        
+        // Auto-connect when page loads
+        window.onload = connect;
+    </script>
+</body>
+</html>
